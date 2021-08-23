@@ -1,0 +1,15 @@
+c = int(input("Skriv tall "))
+m = 3233
+
+print(bin(c))
+x = 1
+power = c % m
+
+for i in range(len(bin(c))-1, 1, -1):
+
+    if bin(c)[i] == "1":
+        x = (x * power) % m
+        print(x)
+    power = (power**2) % m
+
+print(x)
