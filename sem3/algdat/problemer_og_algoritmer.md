@@ -12,5 +12,24 @@
     * Bevise at det gjelder for en vilkårlig verdi k.
     * Viser at dette medfører at k+1 også er sann. 
     * Ved induksjon er det bevist at det gjelder for enhver k.
+* Del opp i mindre problemer
+* Anta man kan løse disse mindre problemene
+* Bruker delløsningene for å løse hovedproblemet
 
 #### Insertion sort algoritme
+Insertion-Sort(A)
+
+```
+for j = 2 to A.length
+    key = A[J]
+    i = j-1
+    while i > 0 and A[i] > key
+        A[i+1] = A[i]
+        i = i - 1
+    A[i] = key
+```
+
+#### Asymptotisk notasjon
+* Dropp konstanter og ta høyeste orden, altså droppe lavere orden
+
+
