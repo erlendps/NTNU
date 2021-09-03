@@ -1,5 +1,7 @@
 import numpy as np
+from numpy.lib.shape_base import split
 import sympy as sp
+import re
 
 x = sp.symbols("x")
 
@@ -32,8 +34,6 @@ def interpolate(data_x, data_y):
         omega_i = omegas[i-1] * (x-data_x[i-1])
         omegas = np.append(omegas, omega_i)
 
-    print(constants)
-    print(omegas)
     return sp.expand(np.dot(constants, omegas))
 
 
@@ -45,8 +45,17 @@ def divided_diff(data_x, values):
 
 
 # main program
-data_x = [3, 4, 5, 6]
-data_y = [2, 6, 12, 26]
+data_x = []
+data_y = []
 
+num_inp = int(input("Number of data points (int): "))
+for i in range(1, num_inp+1):
+    inp = input(f"Data point {i} (format: (x,y)): ")
+    inp = re.sub("[(|)]", "", inp)
+    data_point = inp.split(",")
+    for i in range(2):
+        data_point[i] = data_point[i].strip()
+    data_x.append(float(data_point[0]))
+    data_y.append(float(data_point[1]))
 
 print(interpolate(data_x, data_y))
