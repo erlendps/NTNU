@@ -3,9 +3,6 @@ import sympy as sp
 
 x = sp.symbols("x")
 
-for i in range(1,1):
-    print("ja")
-
 """
 Given a set of n+1 datapoints (x_i, y_i), the interpolate-function returns a polynom p
 of deg(p) = n that interpolates all of the n+1 datapoints. This function uses Newtons idea
@@ -19,7 +16,7 @@ def interpolate(data_x, data_y):
     c_1 = (data_y[1] - c_0)/(data_x[1] - data_x[0])
     constants = np.append(constants, [c_0, c_1])
     omegas = np.array([1])
-    omega_1 = omega_func(1, data_x)
+    omega_1 = x - data_x[0]
     omegas = np.append(omegas, omega_1)
 
     if (len(data_x) <= 2):
@@ -27,33 +24,18 @@ def interpolate(data_x, data_y):
 
     for i in range(2, len(data_x)):
         if (i == len(data_x) - 1):
-            j = -1
+            c_i = divided_diff(data_x[0:], data_y[0:])
         else:
-            j = i+1
-        c_i = divided_diff(data_x[0:j], data_y[0:j]) #(divided_diff(data_x[1:j], data_y[1:j]) - constants[i-1])/(data_x[i] - data_x[0])
+            c_i = divided_diff(data_x[0:i+1], data_y[0:i+1])
+        
         constants = np.append(constants, c_i)
-        omega_i = omega_func(i, data_x)
+        omega_i = omegas[i-1] * (x-data_x[i-1])
         omegas = np.append(omegas, omega_i)
 
     print(constants)
     print(omegas)
-    return np.dot(constants, omegas)
+    return sp.expand(np.dot(constants, omegas))
 
-
-
-def omega_func(i, data_x):  # i must be lower than len(data_x)
-    product = 1
-    if (i > 0):
-        for j in range(1, i+1):
-            product = product * (x - data_x[i-1])
-    return product
-
-    """Or if you want to do it recursivly
-    if (i == 0):
-        return 1
-    else:
-        return (x-data[i-1])*omega_func(i-1, data_x)
-    """
 
 def divided_diff(data_x, values):
     if (len(values) == 1):
@@ -63,8 +45,8 @@ def divided_diff(data_x, values):
 
 
 # main program
-data_x = [3, 4, 5]
-data_y = [2, 6, 12]
+data_x = [3, 4, 5, 6]
+data_y = [2, 6, 12, 26]
 
 
 print(interpolate(data_x, data_y))
