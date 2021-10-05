@@ -9,5 +9,5 @@ def fixpoint(function, initial_value, iteration):
 def g(x):
     return x - ma.sin(x) + 1
 
-print(fixpoint(g, ma.pi/4, 200))
+print(fixpoint(g, ma.pi/4, 5))
 print(ma.pi/2)
