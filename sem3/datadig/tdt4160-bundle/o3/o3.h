@@ -21,5 +21,12 @@ void time_to_string(char *timestamp, int h, int m, int s);
 
 // Prototyper
 // legg prototyper for dine funksjoner her
+void updateDisplay(int totalSec);
+void setWord(volatile word* address, int pin, int word);
+void setBit(volatile word* address, int pin, int bit);
+void initializeClock(void);
+void stopClock(void);
+void startClock(void);
+void setAlarmLED(bool value);
 
 #endif

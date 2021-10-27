@@ -12,4 +12,12 @@
 #define SysTick_CTRL_TICKINT_Msk    0b010
 #define SysTick_CTRL_ENABLE_Msk     0b001
 
+// systick struct
+typedef struct{
+	volatile word CTRL;
+	volatile word LOAD;
+	volatile word VAL;
+	volatile word CALIB;
+} systick_map_t;
+
 #endif

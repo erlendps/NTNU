@@ -22,5 +22,40 @@ typedef struct{
 #define GPIO_PORT_E 4
 #define GPIO_PORT_F 5
 
+// GPIO struct
+typedef struct{
+	volatile word CTRL;
+	volatile word MODEL;
+	volatile word MODEH;
+	volatile word DOUT;
+	volatile word DOUTSET;
+	volatile word DOUTCLR;
+	volatile word DOUTTGL;
+	volatile word DIN;
+	volatile word PINLOCKN;
+} gpio_port_map_t;
+
+// GPIO MAP
+typedef struct{
+	volatile gpio_port_map_t ports[6];
+	volatile word empty_spaces[10];
+	volatile word EXTIPSELL;
+	volatile word EXTIPSELH;
+	volatile word EXTIRISE;
+	volatile word EXTIFALL;
+	volatile word IEN;
+	volatile word IF;
+	volatile word IFS;
+	volatile word IFC;
+	volatile word ROUTE;
+	volatile word INSENSE;
+	volatile word LOCK;
+	volatile word CTRL;
+	volatile word CMD;
+	volatile word EM4WUEN;
+	volatile word EM4WUPOL;
+	volatile word EM4WUCAUSE;
+} gpio_map_t;
+
 
 #endif
