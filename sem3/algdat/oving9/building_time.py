@@ -9,28 +9,41 @@ def building_time(tasks):
     global sorted_tasks
     sorted_tasks = []
     greyed = []
+    time = {}
     # topological sort
     for task in tasks:
         if task not in greyed:
             dfs_visit(task, greyed)
-    print(sorted_tasks)
     # dag shortest path
     for task in sorted_tasks:
-        task.i = 10000000
-    sorted_tasks[0].i = 0
+        time[task] = task.time
+        if len(task.depends_on) != 0:
+            task.time = 10000000
     for task in sorted_tasks:
         for adj_task in task.depends_on:
-            if (adj_task.i > task.i + adj_task.time):
-                adj_task.i = task.i + adj_task.time
-    return sorted_tasks[-1].i + sorted_tasks[0].time
+            if (task.time == 10000000):
+                if (task.time > adj_task.time + time[task]):
+                    task.time = adj_task.time + time[task]
+            else:
+                if (task.time < adj_task.time + time[task]):
+                    task.time = adj_task.time + time[task]
+    max_d = 0
+    for task in sorted_tasks:
+        if task.time > max_d:
+            max_d = task.time
+    return max_d
     
 
 def dfs_visit(task, greyed):
     greyed.append(task)
+    if len(task.depends_on) == 0:
+        sorted_tasks.insert(0, task)
+        return
     for dependency in task.depends_on:
         if dependency not in greyed:
             dfs_visit(dependency, greyed)
-    sorted_tasks.insert(0, task)
+    sorted_tasks.append(task)
+    
 
 
 class Task:
