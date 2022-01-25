@@ -1,6 +1,6 @@
 # ER-modellering
 ## ER-modellen
-Består av:
+Består av:q
 - Entiteter (objekter) - entitetsklasser
 - Attributter - verdier/felter
 - Relasjoner - relasjonsklasser
@@ -102,3 +102,60 @@ Vi går fra miniverden til en konseptuell modell (ER) til en logisk modell og ti
 	- Den må ha ett eller flere attributt som identifiserer entiteter unikt sammen med nøkkelen til den indetifiserende entitetsklassen.
 - Fordelen er at vi unngår å legge til et "unødvendig" nøkkelattributt
 - En identifiserende relasjonsklasse blir tegnet med dobbel rombe. Den svake entitetsklassen er tegnet med en dobbelt boks og den delvise nøkkelen er stiplet under. Den identifiserende entitetsklassen er en regulær entitetsklasse.
+
+## Enhanced ER (EER)
+- Standard ER, pluss
+	- støtte for spesialisering/generalisering
+		- subklasser/superklasser
+	- Entitetsklasser med entiteter fra ulike entitetsklasser
+		- kategorier (union-typer)
+	- arving
+		- relasjonsklasser og attributter
+
+### Spesialisering / generalisering
+- Spesialisering
+	- å definere en mengde subklasser (underklasser) for en entitetsklasse (superklasse)
+- Generalisering
+	- samling av entitetsklasser med felles egenskaper som subklasser under en (felles) superklasse
+- De felles egenskapene modelleres på superklassen
+- Det som er unikt for en subklasse modelleres på subklassen
+
+### Notasjon
+Fra superklassen tegner man en strek til en sirkel. Ut fra sirkelen tegnes streker til subklassene, med pil.
+- En entitet i en subklasse er alltid en entitet i superklassen
+	- men har en spesiell rolle
+- entiteter i subklasser:
+	- arver alle superklassens attributter og relasjoner
+- subklassene kan ha egne
+	- attributter
+	- relasjonsklasser
+- Entiteter må ikke være med i en subklasse, men det kan være et krav
+- En entitet kan være med i bare en subklasse, eller den kan være med i flere
+
+### Restriksjoner
+- Regelbasert eller brukerstyrt deltakelse i subklasse
+	- Attributter kan bestemme hvilken subklasse en entitet skal høre til.
+	- Regelen legges ved sirkelen fra superklassen
+- Disjunkte eller overlappende subklasser
+	- Ved å sette en "D" i sirkelen tilsier det at en entitet kan kun være medlem av èn subklasse. En "O" indikerer at en entitet kan være del av flere subklasser
+- Delvis eller total spesialisering (frivillig eller tvungen)
+	- Delvis spesialisering er at entitet ikke nødvendigvis må være medlem av subklassen. Det betyr at entiteten f.eks kan være med i superklassen
+	- Total spesialisering (tegnet med dobbel strek til sirkelen) betyr entiteter ikke kan være medlem av superklassen. De kan bare være medlem av subklassene.
+
+**Muligheter**
+
+| Entitet deltar i: | Disjunkt  |  Overlappende |
+| ---				| --- 		| --- 			|
+| **Delvis** | 0-1 subklasser | 0-n subklasser |
+|	**Total	**	|  1 subklasse  |  1-n subklasser  |
+
+### Kategorier (unionklasser)
+- Subklasser med flere superklasser
+- Mengden entiteter i en kategori er en delmengde av entitetene i superklassene
+- Kategorier kalles også union-klasse, derfor U i sirkelen
+- Selektiv arving
+
+#### Restriksjoner
+- Delvis kategori. Superklassene trenger ikke nødvendigvis å være medlem av kategorien
+- Total kategori: alle superklasser må være med i kategorien.
+- Dersom vi har en total kategori, burde man vurdere om en løsning med spesialisering/generalisering blir en bedre løsning.
