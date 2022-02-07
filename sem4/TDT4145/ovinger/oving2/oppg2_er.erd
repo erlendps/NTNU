@@ -88,7 +88,7 @@
     <diamond id="27" is_weak="false" name="MentorFor" x="461" y="478">
         <attributes/>
     </diamond>
-    <diamond id="31" is_weak="false" name="Deltar" x="348" y="457">
+    <diamond id="31" is_weak="false" name="DeltarPå" x="348" y="457">
         <attributes/>
     </diamond>
     <diamond id="39" is_weak="false" name="SerTil" x="859" y="431">
@@ -108,18 +108,6 @@
     <comment id="45" x="883" y="627">
         <text>
             <line>N</line>
-        </text>
-    </comment>
-    <comment id="46" x="390" y="158">
-        <text>
-            <line>Antagelser:</line>
-            <line>- En avdeling må inneholde minst 1 dyr</line>
-            <line>- Et dyr hører kun til  én avdeling</line>
-            <line>- Et notis har en type som identifiserer det (f.eks frykt eller allergi), </line>
-            <line>samt en kort beskrivelse (f.eks torden)</line>
-            <line>- En ansatt kan kun være ansatt i én avdeling</line>
-            <line>- En leder trenger ikke å være mentor</line>
-            <line>- En eller flere assistenter kan være del av et tilsyn </line>
         </text>
     </comment>
     <line cardinality_string="(0,n)" has_u="false" id="3" is_weak="false" role="" style="0" turned="false">
@@ -186,11 +174,11 @@
         <connection connection_side="2" direction="0" object_id="5" relation_point_x="980" relation_point_y="685"/>
         <connection connection_side="0" direction="0" object_id="13" relation_point_x="1047" relation_point_y="719"/>
     </line>
-    <line cardinality_string="" has_u="false" id="37" is_weak="false" role="" style="0" turned="false">
+    <line cardinality_string="(1,1)" has_u="false" id="37" is_weak="false" role="" style="0" turned="false">
         <connection connection_side="0" direction="0" object_id="22" relation_point_x="439" relation_point_y="381"/>
         <connection connection_side="1" direction="1" object_id="31" relation_point_x="364" relation_point_y="457"/>
     </line>
-    <line cardinality_string="" has_u="false" id="38" is_weak="false" role="" style="0" turned="false">
+    <line cardinality_string="(1,1)" has_u="false" id="38" is_weak="false" role="" style="0" turned="false">
         <connection connection_side="0" direction="0" object_id="21" relation_point_x="441" relation_point_y="599"/>
         <connection connection_side="3" direction="1" object_id="31" relation_point_x="364" relation_point_y="489"/>
     </line>
