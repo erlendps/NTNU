@@ -69,3 +69,83 @@ deliver_data(data)
 	- Negative acknowøedge,emts (NAKs):
 		- receiver explicity tells sender that packet had errors
 			- sender retransmits packet on receipt of NAK
+
+## RDT 3.0 
+### Stop and wait operation
+- first packet bit transmitted at t=0
+- last packet bit ransmitted at $t=\frac{L}{R}$
+	- first packet bit arrives
+	- last packet bit arrives, send ACK
+- ACK arrives, send next packet at $t=RTT + \frac{L}{R}$
+- $U_{sender}$: Utilization - fraction of time sender busy sending
+	- $U_{sender} = \frac{L/R}{RTT + L/R}$
+
+This is a slow protocol. Better to use pipelined protocols
+- packets in flight are yet to be acknowledged
+- range of sequence numbers must be increased
+- Buffering at sender and/or receiver
+- When sending 3 packets at a time:
+	- $U_{sender} = \frac{3*L/R}{RTT + L/R}$
+
+### Retransmission strategies
+- Go-back-N retransmission
+	- sender can have up to N unACKed packets in pipeline
+	- Receiver sends cumulative ACKs
+		- doesnt ACK packet if theres a gap in received packets
+	- sender has timer for oldest unACKed packet
+		- if timer expires retransmit all unACKed packets
+	- **Senders view of sequence numbers**
+		- k-bit sequence number in packet header
+		- "Window" of up to N, consecutive unacked packets allowed
+		- "Cumulative ACK": ACKs all packets up to, including sequence number n
+			- may receive duplicate ACKs
+		- timer for each in-flight packet, only one countdown timer
+		- timeout(n): retransmit packet n and all higher sequence number packets in window.
+	- With n-bit sequence number field, the size of the sequence number space = $2^n$. Maximum window = $2^{n} - 1$
+- Selective repeat retransmission
+	- sender can have up to N unACKed packets in pipeline
+	- Receiver ACKs individual packets
+	- Sender maintains timer for each unACKed packet
+		- when timer expires, retransmit only unACKed packet
+	- Event actions at sender:
+		1. Data received from above
+			- if next available seq (nextseqnum) # in window, send packet
+		2. Timeout(n)
+			- resend pkt n, restart timer
+		3. ACK(n) in \[sendbase, sendbase+N\]
+			- mark pkt n as received (change colour from yellow to green)
+			- if n smallest unACKed packet, advance send_base to next unACKed seq #
+	- Event actions as receiver
+		1. Packet(n) in \[rcvbase, rcvbase+N-1\] - within window
+			- send ACK(n)
+			- out of order: buffer packet
+			- in-order:deliver all buffered, in-order packets, advance rcv_base to next not-yet-received packet
+		2. Packet(n) in \[rcvbase-N, rcvbase-1\] - duplicate
+			- ACK(n)
+		3. otherwise ignore the packet
+	- With n-bit sequence number field, the size of the sequence number space = $2^n$. Maximum window = $2^{n-1}$
+
+## 3.5 Connection-oriented transport: Transmission Control Protocol
+### TCP
+- point to point
+	- one sender, one receiver
+- connection-oriented
+	- handshaking. Initiates sender and receiver state before data exhange
+- Error controlled
+	- bit error, segment error
+- Flow control
+	- sender will not overwhelm receiver
+- Congestion control
+	- sender adjust transmission dependent on network load
+- Full duplex data
+	- bi-directionaldata flow in same connection
+- MSS = maximum segment size
+
+- Reliable, in-order byte stream
+	- no "message boundaries"
+
+### MSS - what is it?
+The MSS announcement (often mistakenly called a negotiation) is sent during the three.way handshake by both sides saying: "I can accept TCP segments up to size x". 
+
+
+
