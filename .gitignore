@@ -1,4 +1,6 @@
 .ipynb_checkpoints
 .vscode
 .obsidian
+book.pdf
 **/*-ignore
+**/book
