@@ -2,6 +2,7 @@
 .vscode
 .obsidian
 book.pdf
+book-*.pdf
 **/*-ignore
 **/book
 ass1
