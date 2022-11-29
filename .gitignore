@@ -6,3 +6,4 @@ book-*.pdf
 **/*-ignore
 **/book
 ass1
+**/gvdb/assignments
