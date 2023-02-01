@@ -1,0 +1,8 @@
+math.pi/2,0.240
+math.pi,0.3
+3*math.pi/2,0.44
+2*math.pi,0.6
+5*math.pi/2,0.8
+3*math.pi,1
+7*math.pi/2,1.1
+4*math.pi,1.4
