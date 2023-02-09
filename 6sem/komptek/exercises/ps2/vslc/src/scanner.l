@@ -10,10 +10,43 @@
 WHITESPACE [\ \t\v\r\n]
 COMMENT \/\/[^\n]+
 QUOTED \"([^\"\n]|\\\")*\"
+DIGIT [0-9]
+LETTER [a-zA-Z]
+FUNCTION_DEC func
+PRINT print
+RETURN return
+BREAK break
+IF if
+THEN then
+ELSE else
+WHILE while
+FOR for
+IN in
+DO do
+OPENBLOCK begin
+ENDBLOCK end
+VAR var
+
 %%
-{WHITESPACE}+           { /* Eliminate whitespace */ }
-{COMMENT}               { /* Eliminate comments */ }
-{QUOTED}                { return STRING; }
+{WHITESPACE}+                   { /* Eliminate whitespace */ }
+{COMMENT}                       { /* Eliminate comments */ }
+{QUOTED}                        { return STRING; }
+{DIGIT}+                        { return NUMBER; }
+{LETTER}({DIGIT}|{LETTER}|_)*   { return IDENTIFIER; } 
+{FUNCTION_DEC}                  { return FUNC; }
+{PRINT}                         { return PRINT; }
+{RETURN}                        { return RETURN; }
+{BREAK}                         { return BREAK; }
+{IF}                            { return IF; }
+{THEN}                          { return THEN; }
+{ELSE}                          { return ELSE; }
+{WHILE}                         { return WHILE; }
+{FOR}                           { return FOR; }
+{IN}                            { return IN; }
+{DO}                            { return DO; }
+{OPENBLOCK}                     { return OPENBLOCK; }
+{ENDBLOCK}                      { return ENDBLOCK; }
+{VAR}                           { return VAR; }
 
   /* 
    TODO:
