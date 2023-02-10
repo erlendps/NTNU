@@ -2,6 +2,7 @@
 .idea
 *.log
 tmp/
+tree
 
 *.o
 y.tab.h
