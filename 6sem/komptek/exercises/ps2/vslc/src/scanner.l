@@ -2,42 +2,6 @@
 #include <vslc.h>
 // The tokens defined in parser.y
 #include "y.tab.h"
-#include <string.h>
-
-
-int get_token(char *str) {
-  if (!strcmp(str, "func")) {
-    return FUNC;
-  } else if (!strcmp(str, "print")) {
-    return PRINT;
-  } else if (!strcmp(str, "return")) {
-    return RETURN;
-  } else if (!strcmp(str, "break")) {
-    return BREAK;
-  } else if (!strcmp(str, "if")) {
-    return IF;
-  } else if (!strcmp(str, "then")) {
-    return THEN;
-  } else if (!strcmp(str, "else")) {
-    return ELSE;
-  } else if (!strcmp(str, "while")) {
-    return WHILE;
-  } else if (!strcmp(str, "for")) {
-    return FOR;
-  } else if (!strcmp(str, "in")) {
-    return IN;
-  } else if (!strcmp(str, "do")) {
-    return DO;
-  } else if (!strcmp(str, "begin")) {
-    return OPENBLOCK;
-  } else if (!strcmp(str, "end")) {
-    return CLOSEBLOCK;
-  } else if (!strcmp(str, "var")) {
-    return VAR;
-  } else {
-    return IDENTIFIER;
-  }
-}
 %}
 %option noyywrap
 %option array
@@ -48,13 +12,41 @@ COMMENT \/\/[^\n]+
 QUOTED \"([^\"\n]|\\\")*\"
 DIGIT [0-9]
 LETTER [a-zA-Z]
+FUNC func
+PRINT print
+RETURN return
+BREAK break
+IF if
+THEN then
+ELSE else
+WHILE while
+FOR for
+IN in
+DO do
+STARTBLOCK begin
+ENDBLOCK end
+VAR var
 
 %%
+{FUNC}                          { return FUNC; }
+{PRINT}                         { return PRINT; }
+{RETURN}                        { return RETURN; }
+{BREAK}                         { return BREAK; }
+{IF}                            { return IF; }
+{THEN}                          { return THEN; }
+{ELSE}                          { return ELSE; }
+{WHILE}                         { return WHILE; }
+{FOR}                           { return FOR; }
+{IN}                            { return IN; }
+{DO}                            { return DO; }
+{STARTBLOCK}                    { return OPENBLOCK; }
+{ENDBLOCK}                      { return CLOSEBLOCK; }
+{VAR}                           { return VAR; }
 {WHITESPACE}+                   { /* Eliminate whitespace */ }
 {COMMENT}                       { /* Eliminate comments */ }
 {QUOTED}                        { return STRING; }
 {DIGIT}+                        { return NUMBER; }
-{LETTER}({DIGIT}|{LETTER}|_)*   { return get_token(yytext); } 
+{LETTER}({DIGIT}|{LETTER}|_)*   { return IDENTIFIER;/*get_token(yytext);*/ } 
 
   /* 
    TODO:
@@ -70,5 +62,5 @@ LETTER [a-zA-Z]
   */
 
   /* Unknown chars get returned as single char tokens */
-.                       { return yytext[0]; }
+.                               { return yytext[0]; }
 %%
