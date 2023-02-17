@@ -11,7 +11,7 @@ WHITESPACE [\ \t\v\r\n]
 COMMENT \/\/[^\n]+
 QUOTED \"([^\"\n]|\\\")*\"
 DIGIT [0-9]
-LETTER [a-zA-Z]
+LETTER [a-zA-Z_]
 FUNC func
 PRINT print
 RETURN return
@@ -46,7 +46,7 @@ VAR var
 {COMMENT}                       { /* Eliminate comments */ }
 {QUOTED}                        { return STRING; }
 {DIGIT}+                        { return NUMBER; }
-{LETTER}({DIGIT}|{LETTER}|_)*   { return IDENTIFIER;/*get_token(yytext);*/ } 
+{LETTER}({DIGIT}|{LETTER})*   { return IDENTIFIER;/*get_token(yytext);*/ } 
 
   /* 
    TODO:
