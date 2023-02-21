@@ -263,51 +263,42 @@ while_statement :
 relation :
       expression '=' expression {
         $$ = MALLOC;
-        char *s = "=";
-        node_init($$, RELATION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, RELATION, strdup("="), 2, $1, $3);   // $1 = $3 = expression
       }
     | expression '!' '=' expression {
         $$ = MALLOC;
-        char *s = "!=";
-        node_init($$, RELATION, s, 2, $1, $4);   // $1 = $3 = expression
+        node_init($$, RELATION, strdup("!="), 2, $1, $4);   // $1 = $3 = expression
       }
     | expression '<' expression {
         $$ = MALLOC;
-        char *s = "<";
-        node_init($$, RELATION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, RELATION, strdup("<"), 2, $1, $3);   // $1 = $3 = expression
       }
     | expression '>' expression {
         $$ = MALLOC;
-        char *s = ">";
-        node_init($$, RELATION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, RELATION, strdup(">"), 2, $1, $3);   // $1 = $3 = expression
       }
     ;
 
 expression :
       expression '+' expression {
         $$ = MALLOC;
-        char *s = "+";
-        node_init($$, EXPRESSION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, EXPRESSION, strdup("+"), 2, $1, $3);   // $1 = $3 = expression
       }
     | expression '-' expression {
         $$ = MALLOC;
-        char *s = "-";
-        node_init($$, EXPRESSION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, EXPRESSION, strdup("-"), 2, $1, $3);   // $1 = $3 = expression
       }
     | expression '*' expression {
         $$ = MALLOC;
-        char *s = "*";
-        node_init($$, EXPRESSION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, EXPRESSION, strdup("*"), 2, $1, $3);   // $1 = $3 = expression
       }
     | expression '/' expression {
         $$ = MALLOC;
-        char *s = "/";
-        node_init($$, EXPRESSION, s, 2, $1, $3);   // $1 = $3 = expression
+        node_init($$, EXPRESSION, strdup("/"), 2, $1, $3);   // $1 = $3 = expression
       }
     | '-' expression {
         $$ = MALLOC;
-        char *s = "-";
-        node_init($$, EXPRESSION, s, 1, $2);      // $2 = expression
+        node_init($$, EXPRESSION, strdup("-"), 1, $2);      // $2 = expression
       }
     | '(' expression ')' {
         $$ = MALLOC;
@@ -365,16 +356,14 @@ number :
 identifier :
       IDENTIFIER {
         $$ = MALLOC;
-        char *ident = strdup(yytext);
-        node_init($$, IDENTIFIER_DATA, ident, 0);
+        node_init($$, IDENTIFIER_DATA, strdup(yytext), 0);
       }
     ;
 
 string :
       STRING {
         $$ = MALLOC;
-        char *str = strdup(yytext);
-        node_init($$, STRING_DATA, str, 0);
+        node_init($$, STRING_DATA, strdup(yytext), 0);
       }
     ;
 /*

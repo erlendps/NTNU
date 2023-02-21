@@ -19,8 +19,12 @@ extern node_t *root;
 
 // Export the node initializer function, needed by the parser
 void node_init(node_t *nd, node_type_t type, void *data, uint64_t n_children, ...);
-
+void simplify_syntax_tree(void);
 void print_syntax_tree(void);
 void destroy_syntax_tree(void);
+
+// Special function used when syntax trees are output as graphviz graphs.
+// Implemented in graphviz_output.c
+void graphviz_node_print(node_t *root);
 
 #endif  // TREE_H

@@ -46,21 +46,6 @@ VAR var
 {COMMENT}                       { /* Eliminate comments */ }
 {QUOTED}                        { return STRING; }
 {DIGIT}+                        { return NUMBER; }
-{LETTER}({DIGIT}|{LETTER})*   { return IDENTIFIER;/*get_token(yytext);*/ } 
-
-  /* 
-   TODO:
-
-   Add the rest of the translation rules here.
-   See the lexical structure definition of the modified VSL in PS2.
-   Also see the `%token` directives in parser.y for all symbolic names that can be returned - e.g. STRING, NUMBER, IDENTIFIER.
-
-   Hint to get you started:
-   The scanner returns STRING when matching the QUOTED regex above.
-   When should the scanner return a NUMBER, IDENTIFIER, etc?
-   In which specific scenarios should the scanner return a FUNC or PRINT?
-  */
-
-  /* Unknown chars get returned as single char tokens */
+{LETTER}({DIGIT}|{LETTER})*     { return IDENTIFIER; } 
 .                               { return yytext[0]; }
 %%
