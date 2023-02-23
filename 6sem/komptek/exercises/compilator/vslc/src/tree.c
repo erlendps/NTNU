@@ -98,6 +98,106 @@ static void destroy_subtree(node_t *discard) {
   }
 }
 
+// finds and returns a pointer to the parent of the node
+// it also returns the index of the node.
+node_t *find_parent(node_t *current, node_t *target, uint64_t *index) {
+  node_t *result = NULL;
+  if (current == target) {
+    return target;
+  }
+  for (uint64_t i = 0; i < current->n_children; i++) {
+    result = find_parent(current->children[i], target, index);
+    if (result == target) {
+      *index = i;
+      return current;
+    }
+  }
+  return result;
+}
+
+/*
+void main() {
+  node_t *n1 = malloc(sizeof(node_t));
+  node_t *n2 = malloc(sizeof(node_t));
+  node_t *n3 = malloc(sizeof(node_t));
+  node_t *n4 = malloc(sizeof(node_t));
+  node_t *n5 = malloc(sizeof(node_t));
+  node_init(n1, GLOBAL_LIST, NULL, 1, n2);
+  node_init(n2, FUNCTION, NULL, 2, n3, n4);
+  node_init(n3, PARAMETER_LIST, NULL, 0);
+  node_init(n4, STATEMENT, NULL, 1, n5);
+  node_init(n5, BLOCK, NULL, 0);
+  uint64_t index;
+  node_t *n41 = find_parent(n1, n4, &index);
+  if (n41 == NULL) {
+    printf("\nNULL\n");
+  }
+}
+*/
+
+// method for squashing self, i.e replacing itself with the child
+static node_t *squash_self(node_t *node) {
+  uint64_t index;
+  node_t *parent = find_parent(root, node, &index);
+  if (parent == NULL) {
+    return node;
+  }
+  node_t *child = node->children[0];
+  parent->children[index] = child;
+  node_finalize(node);
+  return child;
+}
+
+// method for squashing this nodes child (kill it) and steal
+// that nodes children
+static node_t *squash_child(node_t *node) {
+  // always best to be sure
+  if (node == NULL) {
+    return NULL;
+  }
+  // to continue, we have to make sure the node only has one children.
+  if (node->n_children != 1) {
+    return node;
+  }
+  node_t *child = node->children[0];
+  node->n_children = child->n_children;
+  // first realloc the children pointer with the new num of children
+  node->children = (node_t **)realloc(node->children, node->n_children * sizeof(node_t *));
+  // steal the children
+  for (uint64_t i = 0; i < child->n_children; i++) {
+    node->children[i] = child->children[i];
+  }
+  // free the squashed child and return the node
+  node_finalize(child);
+  return node;
+}
+
+static node_t *flatten_list(node_t *node) {
+  // if a list has 2 children, then the leftmost is another list.
+  // if the list only has 1 child, do nothing
+  if (node->n_children != 2) {
+    return node;
+  }
+  // uint64_t num_of_children = node->children[0]->n_children + 1;
+  uint64_t num_of_children = 0;
+  for (uint64_t i = 0; i < node->n_children; i++) {
+    num_of_children += node->children[i]->n_children;
+  }
+  node_t *list_child = node->children[0];
+  node_t *item_child = node->children[1];
+  node->n_children = num_of_children;
+  node->children = (node_t **)realloc(node->children, node->n_children * sizeof(node_t *));
+  uint64_t count = 0;
+  for (uint64_t i = 0; i < (list_child->n_children); i++) {
+    node->children[count++] = list_child->children[i];
+  }
+  node->children[count] = item_child;
+  // node->children[count] = item_child->children[0];
+  node_finalize(list_child);
+  // node_finalize(item_child);
+  return node;
+}
+
 /* Recursive function to convert a parse tree into an abstract syntax tree */
 static node_t *simplify_tree(node_t *node) {
   if (node == NULL)
@@ -114,6 +214,52 @@ static node_t *simplify_tree(node_t *node) {
 
     // For nodes that only serve as a wrapper for a (optional) node below,
     // you may squash the child and take over its children instead.
+    case PROGRAM:
+      root = node->children[0];
+      node_finalize(node);
+      return root;
+
+    case GLOBAL_LIST:
+      return flatten_list(node);
+
+    case GLOBAL:
+      return squash_self(node);
+
+    case DECLARATION:
+      return squash_child(node);
+
+    case VARIABLE_LIST:
+      return flatten_list(node);
+
+    case ARRAY_DECLARATION:
+      return squash_child(node);
+
+    case PARAMETER_LIST:
+      return squash_child(node);
+
+    case STATEMENT:
+      return squash_self(node);
+
+    case DECLARATION_LIST:
+      return flatten_list(node);
+
+    case STATEMENT_LIST:
+      return flatten_list(node);
+
+    case PRINT_STATEMENT:
+      return squash_child(node);
+
+    case PRINT_LIST:
+      return flatten_list(node);
+
+    case PRINT_ITEM:
+      return squash_self(node);
+
+    case EXPRESSION_LIST:
+      return flatten_list(node);
+
+    case ARGUMENT_LIST:
+      return squash_child(node);
 
     // TODO: Task 2.2
     // Flatten linked list structures.
@@ -135,20 +281,6 @@ static node_t *simplify_tree(node_t *node) {
   return node;
 }
 
-// Helper macros for manually building an AST
-#define NODE(variable_name, ...)                  \
-  node_t *variable_name = malloc(sizeof(node_t)); \
-  node_init(variable_name, __VA_ARGS__)
-// After an IDENTIFIER_NODE has been added to the tree, it can't be added again
-// This macro replaces the given variable with a new node, containting a copy of the data
-#define DUPLICATE_VARIABLE(variable)                     \
-  do {                                                   \
-    char *identifier = strdup(variable->data);           \
-    variable = malloc(sizeof(node_t));                   \
-    node_init(variable, IDENTIFIER_DATA, identifier, 0); \
-  } while (false)
-#define FOR_END_VARIABLE "__FOR_END__"
-
 static node_t *constant_fold_expression(node_t *node) {
   assert(node->type == EXPRESSION);
 
@@ -164,6 +296,20 @@ static node_t *constant_fold_expression(node_t *node) {
   // Remember to free up the memory used by the original node(s), if they get replaced by a new node
   return node;
 }
+
+// Helper macros for manually building an AST
+#define NODE(variable_name, ...)                  \
+  node_t *variable_name = malloc(sizeof(node_t)); \
+  node_init(variable_name, __VA_ARGS__)
+// After an IDENTIFIER_NODE has been added to the tree, it can't be added again
+// This macro replaces the given variable with a new node, containting a copy of the data
+#define DUPLICATE_VARIABLE(variable)                     \
+  do {                                                   \
+    char *identifier = strdup(variable->data);           \
+    variable = malloc(sizeof(node_t));                   \
+    node_init(variable, IDENTIFIER_DATA, identifier, 0); \
+  } while (false)
+#define FOR_END_VARIABLE "__FOR_END__"
 
 // Replaces the FOR_STATEMENT with a BLOCK.
 // The block contains varables, setup, and a while loop
