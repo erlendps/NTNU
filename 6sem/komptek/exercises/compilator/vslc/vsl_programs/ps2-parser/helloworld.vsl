@@ -1,3 +1,0 @@
-func main() begin
-    print "Hello, World!"
-end
