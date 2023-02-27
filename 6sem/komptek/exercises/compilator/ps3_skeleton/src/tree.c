@@ -10,6 +10,7 @@ typedef enum SEARCH_STATUS {
   SEARCH_STATUS_DONE
 } SEARCH_STATUS;
 
+/* Enum for constant folding operation */
 typedef enum CONST_FOLDING_OP {
   CONST_FOLDING_OP_PLUS,
   CONST_FOLDING_OP_MINUS,
@@ -113,10 +114,12 @@ SEARCH_STATUS find_parent(node_t *current, node_t *target, node_t **result, uint
   for (uint64_t i = 0; i < current->n_children; i++) {
     SEARCH_STATUS tmp = find_parent(current->children[i], target, result, index);
     if (tmp == SEARCH_STATUS_CHILD_FOUND) {
+      // the child has been found, which means that the current iteration is the parent
       *index = i;
       *result = current;
       return SEARCH_STATUS_DONE;
     } else if (tmp == SEARCH_STATUS_DONE) {
+      // we have found the parent, propogate this upwards
       return SEARCH_STATUS_DONE;
     }
   }
@@ -190,23 +193,6 @@ static node_t *flatten_list(node_t *node) {
   return node;
 }
 
-/*
-void main() {
-  root = malloc(sizeof(node_t));
-  node_t *n2 = malloc(sizeof(node_t));
-  node_t *n3 = malloc(sizeof(node_t));
-  node_t *n4 = malloc(sizeof(node_t));
-  node_t *n5 = malloc(sizeof(node_t));
-  node_init(root, GLOBAL_LIST, NULL, 1, n2);
-  node_init(n2, FUNCTION, NULL, 2, n3, n4);
-  node_init(n3, PARAMETER_LIST, NULL, 0);
-  node_init(n4, STATEMENT, NULL, 1, n5);
-  node_init(n5, BLOCK, NULL, 0);
-  squash_self(n4);
-  node_print(root, 0);
-}
-*/
-
 /* Recursive function to convert a parse tree into an abstract syntax tree */
 static node_t *simplify_tree(node_t *node) {
   if (node == NULL)
@@ -237,32 +223,17 @@ static node_t *simplify_tree(node_t *node) {
     case ARRAY_DECLARATION:
       return squash_child(node);
 
-    case ARRAY_INDEXING:
-      break;
-
-    case FUNCTION:
-      break;
-
     case PARAMETER_LIST:
       return squash_child(node);
 
     case STATEMENT:
       return squash_self(node);
 
-    case BLOCK:
-      break;
-
     case DECLARATION_LIST:
       return flatten_list(node);
 
     case STATEMENT_LIST:
       return flatten_list(node);
-
-    case ASSIGNMENT_STATEMENT:
-      break;
-
-    case RETURN_STATEMENT:
-      break;
 
     case PRINT_STATEMENT:
       return squash_child(node);
@@ -273,26 +244,12 @@ static node_t *simplify_tree(node_t *node) {
     case PRINT_ITEM:
       return squash_self(node);
 
-    case BREAK_STATEMENT:
-      break;
-
-    case IF_STATEMENT:
-      break;
-
-    case WHILE_STATEMENT:
-      break;
-
-    case RELATION:
-      break;
-
     case EXPRESSION_LIST:
       return flatten_list(node);
 
     case ARGUMENT_LIST:
       return squash_child(node);
 
-    // Do contstant folding, if possible
-    // Also prunes expressions that are just wrapping atomic expressions
     case EXPRESSION:
       return constant_fold_expression(node);
 
@@ -430,61 +387,75 @@ static node_t *constant_fold_expression(node_t *node) {
     variable = malloc(sizeof(node_t));                   \
     node_init(variable, IDENTIFIER_DATA, identifier, 0); \
   } while (false)
-#define FOR_END_VARIABLE "__FOR_END__"
+
+#define FOR_END_VARIABLE "4_END"
 
 // Replaces the FOR_STATEMENT with a BLOCK.
 // The block contains varables, setup, and a while loop
-static node_t *replace_for_statement(node_t *for_node) {
-  assert(for_node->type == FOR_STATEMENT);
-
+static node_t *replace_for_statement(node_t *node) {
+  assert(node->type == FOR_STATEMENT);
+  // get parent of for node
+  node_t *parent = NULL;
+  uint64_t index;
+  find_parent(root, node, &parent, &index);
   // extract child nodes from the FOR_STATEMENT
-  node_t *variable = for_node->children[0];
-  node_t *start_value = for_node->children[1];
-  node_t *end_value = for_node->children[2];
-  node_t *body = for_node->children[3];
+  node_t *variable = node->children[0];
+  node_t *start_value = node->children[1];
+  node_t *end_value = node->children[2];
+  node_t *body = node->children[3];
 
-  // TODO: Task 2.4
-  // Replace the FOR_STATEMENT node, by instead creating the syntax tree of an equivalent block with a while-statement
-  // As an example, the following statement:
-  //
-  // for i in 5..N+1
-  //     print a[i]
-  //
-  // should become:
-  //
-  // begin
-  //     var i, __FOR_END__
-  //     i := 5
-  //     __FOR_END__ := N+1
-  //     while i < __FOR_END__ begin
-  //         print a[i]
-  //         i := i + 1
-  //     end
-  // end
-  //
-
-  // To aid in the manual creation of AST nodes, you can create named nodes using the NODE macro
-  // As an example, the following creates the
-  // var <variable>, __FOR_END__
-  // part of the transformation
+  // create declaration list
   NODE(end_variable, IDENTIFIER_DATA, strdup(FOR_END_VARIABLE), 0);
   NODE(variable_list, VARIABLE_LIST, NULL, 2, variable, end_variable);
   NODE(declaration, DECLARATION, NULL, 1, variable_list);
   NODE(declaration_list, DECLARATION_LIST, NULL, 1, declaration);
 
-  // An important thing to note, is that nodes may not be re-used
-  // since that will cause errors when freeing up the syntax tree later.
-  // because we want to use a lot of IDENTIFIER_DATA nodes with the same data, we have the macro
+  // first assignment, START_IDENTIFIER = expression
   DUPLICATE_VARIABLE(variable);
-  // Now we can use <variable> again, and it will be a new node for the same identifier!
-  NODE(init_assignment, ASSIGNMENT_STATEMENT, NULL, 2, variable, start_value);
-  // We do the same whenever we want to reuse <end_variable> as well
+  NODE(start_assignment, ASSIGNMENT_STATEMENT, NULL, 2, variable, start_value);
+
+  // second assignment, FOR_END_VARIABLE = expression
   DUPLICATE_VARIABLE(end_variable);
   NODE(end_assignment, ASSIGNMENT_STATEMENT, NULL, 2, end_variable, end_value);
 
-  // TODO: The rest is up to you. Good luck!
-  // Don't fret if this part gets too cumbersome. Try your best
+  // creating the while statement
+  DUPLICATE_VARIABLE(variable);
+  DUPLICATE_VARIABLE(end_variable);
+  NODE(relation, RELATION, strdup("<"), 2, variable, end_variable);
 
-  // TODO: Instead of returning the original for_node, destroy it, and return your equivalent block
-  return for_node;
+  // creating the new body, needs to be a block since it needs two statements
+  DUPLICATE_VARIABLE(variable);
+
+  int64_t *increment = malloc(sizeof(int64_t));
+  *increment = 1;
+  NODE(increment_value, NUMBER_DATA, increment, 0);
+  NODE(increment_expression, EXPRESSION, strdup("+"), 2, variable, increment_value);
+
+  // create the assignment
+  DUPLICATE_VARIABLE(variable);
+  NODE(increment_assignment, ASSIGNMENT_STATEMENT, NULL, 2, variable, increment_expression);
+
+  // create the statement list for the body
+  NODE(body_statement_list, STATEMENT_LIST, NULL, 2, body, increment_assignment);
+
+  // create a block
+  NODE(while_block, BLOCK, NULL, 1, body_statement_list);
+
+  // finally create the while_statement
+  NODE(while_statement, WHILE_STATEMENT, NULL, 2, relation, while_block);
+
+  // create the statement_list
+  NODE(statement_list, STATEMENT_LIST, NULL, 3, start_assignment, end_assignment, while_statement);
+
+  // create the block
+  NODE(block_statement, BLOCK, NULL, 2, declaration_list, statement_list);
+
+  // set block_statement to be the new child of the parent
+  parent->children[index] = block_statement;
+
+  // destroy the subtree
+  // set children to null so we don't free them when we are destroying this substree
+  node_finalize(node);
+
+  return block_statement;
 }
