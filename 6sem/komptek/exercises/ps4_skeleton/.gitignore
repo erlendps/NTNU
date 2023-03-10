@@ -1,0 +1,6 @@
+*.o
+tree
+vslc
+parser.c
+scanner.c
+y.tab.h
