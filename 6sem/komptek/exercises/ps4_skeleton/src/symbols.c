@@ -56,11 +56,16 @@ void destroy_tables(void) {
   destroy_string_list();
 }
 
-/* Recursive function for fetching the name and storing it */
+/* Recursive function for fetching the name of a node, i.e the identifier.
+ * Note that it only searches the leftmost child, so the method does not work
+ * in the general case. It works for functions and declarations.
+ */
 char *get_name(node_t *node) {
+  // base case
   if (node->type == IDENTIFIER_DATA) {
     return (char *)(node->data);
   } else {
+    // make sure we don't segfault
     assert(node->n_children > 0);
     return get_name(node->children[0]);
   }
@@ -80,7 +85,8 @@ void insert_global_symbol(symbol_t *symbol) {
 }
 
 /* Helper function for creating a new symbol. Takes in a pointer to a symbol which it
-should initiate. Node is the node that creates the symbol. */
+ * should initiate. Node is the node that creates the symbol.
+ */
 void create_symbol(symbol_t *symbol, node_t *node, symtype_t type) {
   // get the name of the symbol
   char *name = strdup(get_name(node));
@@ -178,7 +184,12 @@ static void bind_names(symbol_table_t *local_symbols, node_t *node) {
       for (uint64_t i = 0; i < node->n_children; i++) {
         symbol_t *symbol = malloc(sizeof(symbol_t));
         create_symbol(symbol, node->children[i], SYMBOL_LOCAL_VAR);
-        symbol_table_insert(local_symbols, symbol);
+        if (symbol_table_insert(local_symbols, symbol) == INSERT_COLLISION) {
+          destroy_string_list();
+          destroy_symbol_tables();
+          destroy_syntax_tree();
+          exit(1);
+        };
       }
       break;
 
@@ -199,7 +210,7 @@ static void bind_names(symbol_table_t *local_symbols, node_t *node) {
       break;
 
     case STRING_DATA:
-      // place string in array
+      // place string in string_list
       // overwrite data with the index
       int64_t *index = malloc(sizeof(int64_t));
       *index = add_string((char *)(node->data));
