@@ -22,52 +22,102 @@ lines:
     .quad str07, str08, str09, str10, str11, str12
 
 .section .text
+/* The main function. */
 main:
     pushq %rbp
     movq %rsp, %rbp
 
-    /*
-        TODO: Task 1 - Put your code here.
+    # set up main loop counter
+    movq $0, %r12
 
-        Your task: 
-        Implement a GNU Assembly program that prints a alightly modified version of the "Twelve Days of Christmas" song.
-        Instead of "first day, second day" or "1st day, 2nd day" etc, your program may output "On day N of Christmas my true love gave to me".
-        This song is cumulative - each day will include the gifts of every previous day.
-        (i.e. day 1 will include only a partridge, while day 2 will include two turtle doves AND a partridge).
-        Use printf to output the lyrics of the song to terminal.
-        A suggestion for the first lines of the output is added below.
+    # check if we have reached the end of the loop
+    main_loop_test:
+    cmp $12, %r12   # set flags
+    jge main_loop_end # if r12 - 12 >= 0 we are finished
 
+    main_loop:
+    # prepare argument for print_verse function
+    movq %r12, %rdi
+    movq $0, %rsi # so we get even number of arguments when calling function
+    call print_verse
+    # increment counter and jump to test condition
+    inc %r12
+    jmp main_loop_test
 
-        HINTS:
-        - The registers %rdi and %rsi are used for the first two arguments in a function call (like printf).
-        - Some registers are overwritten by functions (including printf!) This includes %rax, %rbx, %rcx, %rdx, %rdi, %rsi, %rbp, %rsp, and %r8-r15.
-        - The order of comparisons are (for some reason) reversed! This means that cmp %r8, %r9 will compare r9 vs r8.
-        - Create a debug helper string that you can call with printf for slightly easier debugging.
-        - Consult the examples in (../examples/) for inspiration. Make them with `make`.
-        - Use a cheat sheet like https://flint.cs.yale.edu/cs421/papers/x86-asm/asm.html or https://cs.brown.edu/courses/cs033/docs/guides/x64_cheatsheet.pdf
-        - Compile this with `make` once finished.
-
-
-        BONUS POINTS (Can only be exchanged for bragging rights)
-        - Use putchar to easily create new lines so that the finished song doesn't become a giant wall of text.
-        - Make the song include "and" before the last line - i.e., "AND 1 partridge in a pear tree" - in every verse except the first.
+    main_loop_end:
+    # we are finished, do cleanup
+    leave
+    ret
 
 
-        SUGGESTED OUTPUT:
-        On day 1 of Christmas my true love sent to me
-        1 partridge in a pear tree
+/* Function for printing a verse given by the parameter N.
+ */
+print_verse:
+    # Push base pointer to stack, place the stack pointer in base pointer
+    pushq %rbp
+    movq %rsp, %rbp
 
-        On day 2 of Christmas my true love sent to me
-        2 turtle doves
-        and 1 partridge in a pear tree
+    # place argument in r13, we can use this to decrement, i.e reversing the loop
+    # r13 will also works as our index for iterating over the lines arrau
+    movq %rdi, %r13
+    
+    # test and set register if rdi != 0. This means that if rdi != 0, then we should
+    # print "and " before the last line in a verse
+    # defualt value of 0 (don't print)
+    movq $0, %r14
+    contain_and_test:
+    cmp $0, %rdi
+    je continue
+    add $1, %r14 # r14 holds a flag if it shoudl print "and" at the last iteration
 
-        On day 3 of Christmas my true love sent to me
-        3 french hens
-        2 turtle doves
-        and 1 partridge in a pear tree
+    continue:
 
-        ...
-    */
+    # set up base pointer for the array, we place it in r15
+    movq $lines, %r15
 
+    # print the intro
+    movq %r13, %rsi
+    add $1, %rsi
+    movq $intro, %rdi
+    call printf
+
+    # check if we have reached the end of the loop (r13 < 0)
+    loop_test:
+    cmp $0, %r13
+    je last_iteration # if r13 == 0, then we are at the last iteration
+    jl end_loop
+
+    loop_body:
+    # store number of x we give, which should be r13 + 1
+    # we can place the result in rsi, since this is our 2nd parameter in the print function
+    movq %r13, %rsi
+    add $1, %rsi
+
+    # now fetch the string
+    movq (%r15, %r13, 8), %rdi
+
+    # call print
+    call printf
+    # decrement "counter" and jump back to test
+    dec %r13
+    jmp loop_test
+
+    last_iteration:
+    # last iteration
+    # check if flag is set
+    cmp $0, %r14
+    # it not set, just jump to loop_body
+    je loop_body
+    # Else we print "and "
+    movq $and_s, %rdi
+    movq $0, %rsi
+    call printf
+    jmp loop_body
+
+    end_loop:
+    # add extra space
+    movq $'\n', %rdi
+    call putchar
+    # cleanup
     leave
     ret
