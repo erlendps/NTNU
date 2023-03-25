@@ -1,0 +1,12 @@
+var arr[10]
+
+func main(a) begin
+    var b, c
+    b := -(3 + 2)
+    c := test(2, 3)
+    return b
+end
+
+func test(a, b) begin
+    return 5
+end
