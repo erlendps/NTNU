@@ -211,7 +211,7 @@ static void generate_expression(node_t *expression) {
       // fetch the symbol
       symbol_t *symbol_id = expression->symbol;
       if (symbol_id->type == SYMBOL_GLOBAL_VAR) {
-        EMIT("movq $%s%s, %s", GLOBAL_VAR_PREFIX, symbol_id->name, RAX);
+        EMIT("movq %s%s, %s", GLOBAL_VAR_PREFIX, symbol_id->name, RAX);
       } else if (symbol_id->type == SYMBOL_LOCAL_VAR) {
         EMIT("movq -%lu%s, %s", (7 + (symbol_id->sequence_number - get_num_parameters(symbol_id->function_symtable))) * 8, MEM(RBP), RAX);
       } else if (symbol_id->type == SYMBOL_PARAMETER) {
@@ -260,10 +260,10 @@ static void generate_expression(node_t *expression) {
 static void generate_unary_expression(node_t *expression) {
   char *data = (char *)expression->data;
   if (str_equals(data, "-")) {
-    // values are stored as 2's complement, so we have to negate
-    // rax and then add 1.
+    // generate the child, which is now stored in rax
+    generate_expression(expression->children[0]);
+    // then negate RAX
     NEGQ(RAX);
-    ADDQ("$1", RAX);
   }
 }
 
@@ -298,6 +298,8 @@ static void generate_binary_expression(node_t *expression) {
   } else if (str_equals(data, "-")) {
     // subtract rax from r10
     SUBQ(RAX, R10);
+    // since result now is stored in r10, move this to rax
+    MOVQ(R10, RAX);
   } else if (str_equals(data, "*")) {
     // sign extend rax to rdx:rax
     CQO;
@@ -398,7 +400,6 @@ static void generate_print_statement(node_t *statement) {
 }
 
 static void generate_return_statement(node_t *statement, char *func_name) {
-  // TODO: 2.4.5 Store the value in %rax and jump to the function epilogue
   assert(statement->type == RETURN_STATEMENT);
   generate_expression(statement->children[0]);
   EMIT("jmp .%s_epilogue", func_name);
