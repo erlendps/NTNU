@@ -21,6 +21,7 @@ static void generate_main(symbol_t *first);
 static void generate_unary_expression(node_t *expression);
 static void generate_binary_expression(node_t *expression);
 static void generate_expression(node_t *expression);
+static void generate_safe_printf(void);
 
 /* Entry point for code generation */
 void generate_program(void) {
@@ -49,6 +50,9 @@ void generate_program(void) {
       putchar('\n');
     }
   }
+  // safe printf
+  generate_safe_printf();
+  putchar('\n');
   // generate wrapper
   generate_main(entrypoint_symbol);
 }
@@ -97,6 +101,18 @@ static void generate_global_variables(void) {
         break;
     }
   }
+}
+
+/* Function for generating safe print */
+static void generate_safe_printf(void) {
+  LABEL("safe_printf");
+  PUSHQ(RBP);
+  MOVQ(RSP, RBP);
+  EMIT("andq $-16, %s", RSP);
+  EMIT("call printf");
+  MOVQ(RBP, RSP);
+  POPQ(RBP);
+  RET;
 }
 
 /* Function for fetching number of params the function has based on it symbol table */
@@ -391,7 +407,7 @@ static void generate_print_statement(node_t *statement) {
     // place 0 in rax to not crash printf
     MOVQ("$0", RAX);
     // call printf
-    EMIT("call printf");
+    EMIT("call safe_printf");
   }
   // every string is printed
   // place \n in rdi and call putchar
