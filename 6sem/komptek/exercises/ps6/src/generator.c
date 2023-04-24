@@ -330,18 +330,10 @@ static void generate_relation(node_t *relation) {
 void generate_jmp_instruction(char *operator) {
 }
 
+/* Global counter so we can uniquely identify if-statements. */
 uint64_t if_counter = 0;
 
 static void generate_if_statement(node_t *statement) {
-  // TODO (2.1):
-  // Generate code for emitting both if-then statements, and if-then-else statements.
-  // Check the number of children to determine which.
-
-  // Use generate_relation, and conditional jumps to skip the block not taken
-
-  // You will need to define your own unique labels for this if statement,
-  // so consider using a global counter. Remember that
-
   // make a copy of the global counter and increment if_counter
   uint64_t local_count = if_counter;
   if_counter++;
@@ -387,16 +379,17 @@ static void generate_if_statement(node_t *statement) {
 
 /* Loop counter is a unique id for each loop. Incremented on each new loop. */
 uint64_t loop_counter = 0;
-/* break loop id is the id of the innermost loop. Increments at start of new loop,
-   and decrements when the statement inside the loop has been generated.
+/* break loop id is the id of the innermost loop. Is set to the local loop counter at start of loop,
+   and decrements when the statement inside the loop has been generated. This will
+   breaking to the correct loop end.
  */
 int64_t break_loop_id = -1;
 
 static void generate_while_statement(node_t *statement) {
   // create local copy of loop counter
   uint64_t local_count = loop_counter;
-  // increment break_loop_id and loop_counter.
-  break_loop_id++;
+  // assign break_loop_id to local id and increment loop_counter.
+  break_loop_id = local_count;
   loop_counter++;
   // create the if check label
   LABEL("LOOPCHECK%lu", local_count);
